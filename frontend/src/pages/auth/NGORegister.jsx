@@ -8,8 +8,11 @@ import {
   ArrowRight,
   Building2,
 } from "lucide-react";
-// import { useAuth } from "../context/AuthContext.jsx";
+
 import { useAuth } from "../../context/AuthContext.jsx";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const NGORegister = () => {
   const navigate = useNavigate();
@@ -23,6 +26,7 @@ const NGORegister = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -44,7 +48,7 @@ const NGORegister = () => {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,9 +68,12 @@ const NGORegister = () => {
       }
 
       login(data.token, data.user);
+
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      console.error("NGO registration error:", err);
+
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -122,7 +129,7 @@ const NGORegister = () => {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3 font-semibold text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 disabled:opacity-60"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3 font-semibold text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <>

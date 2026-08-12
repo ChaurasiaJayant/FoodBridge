@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, LogIn, ArrowRight, Building2 } from "lucide-react";
+
 import { useAuth } from "../../context/AuthContext.jsx";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const NGOLogin = () => {
   const navigate = useNavigate();
@@ -13,6 +17,7 @@ const NGOLogin = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -29,7 +34,7 @@ const NGOLogin = () => {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -48,9 +53,12 @@ const NGOLogin = () => {
       }
 
       login(data.token, data.user);
+
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      console.error("NGO login error:", err);
+
+      setError(err.message || "Failed to fetch");
     } finally {
       setLoading(false);
     }

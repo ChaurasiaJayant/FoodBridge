@@ -9,8 +9,11 @@ import {
   ArrowRight,
   ShieldCheck,
 } from "lucide-react";
-// import { context } from "../context/AuthContext.jsx";
+
 import { useAuth } from "../../context/AuthContext.jsx";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const AdminRegister = () => {
   const navigate = useNavigate();
@@ -25,6 +28,7 @@ const AdminRegister = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -46,7 +50,7 @@ const AdminRegister = () => {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -67,9 +71,12 @@ const AdminRegister = () => {
       }
 
       login(data.token, data.user);
+
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      console.error("Admin registration error:", err);
+
+      setError(err.message || "Admin registration failed");
     } finally {
       setLoading(false);
     }

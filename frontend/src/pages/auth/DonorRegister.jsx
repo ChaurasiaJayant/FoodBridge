@@ -8,7 +8,11 @@ import {
   ArrowRight,
   HeartHandshake,
 } from "lucide-react";
+
 import { useAuth } from "../../context/AuthContext.jsx";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const DonorRegister = () => {
   const navigate = useNavigate();
@@ -22,6 +26,7 @@ const DonorRegister = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -43,7 +48,7 @@ const DonorRegister = () => {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -63,9 +68,12 @@ const DonorRegister = () => {
       }
 
       login(data.token, data.user);
+
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      console.error("Donor registration error:", err);
+
+      setError(err.message || "Registration failed");
     } finally {
       setLoading(false);
     }

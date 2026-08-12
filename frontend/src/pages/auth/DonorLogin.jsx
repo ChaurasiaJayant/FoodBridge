@@ -4,6 +4,9 @@ import { Mail, Lock, LogIn, ArrowRight, HeartHandshake } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext.jsx";
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
 const DonorLogin = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -14,6 +17,7 @@ const DonorLogin = () => {
   });
 
   const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -30,7 +34,7 @@ const DonorLogin = () => {
       setLoading(true);
       setError("");
 
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -52,7 +56,9 @@ const DonorLogin = () => {
 
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      console.error("Donor login error:", err);
+
+      setError(err.message || "Failed to fetch");
     } finally {
       setLoading(false);
     }
@@ -62,7 +68,6 @@ const DonorLogin = () => {
     <div className="min-h-screen bg-slate-50 px-4 py-10">
       <div className="mx-auto flex min-h-[80vh] max-w-md items-center justify-center">
         <div className="w-full rounded-2xl border border-white/70 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8">
-          {/* Header */}
           <div className="mb-8 text-center">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-green-600">
               <HeartHandshake size={28} />
@@ -75,16 +80,13 @@ const DonorLogin = () => {
             </p>
           </div>
 
-          {/* Error */}
           {error && (
             <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
               {error}
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Email
@@ -108,7 +110,6 @@ const DonorLogin = () => {
               </div>
             </div>
 
-            {/* Password */}
             <div>
               <label className="mb-2 block text-sm font-medium text-slate-700">
                 Password
@@ -132,7 +133,6 @@ const DonorLogin = () => {
               </div>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
@@ -152,7 +152,6 @@ const DonorLogin = () => {
             </button>
           </form>
 
-          {/* Register */}
           <p className="mt-6 text-center text-sm text-slate-500">
             Don't have an account?{" "}
             <Link
