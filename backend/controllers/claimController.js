@@ -112,7 +112,12 @@ const createClaim = async (req, res) => {
     const ngo = await NGO.findOne({
       NGO_ID,
     });
-
+    if (req.user.role === "ngo" && NGO_ID !== req.user.profileId) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only claim donations using your own NGO profile.",
+      });
+    }
     if (!ngo) {
       return res.status(404).json({
         success: false,
@@ -266,6 +271,15 @@ const updateClaimStatus = async (req, res) => {
     const existingClaim = await Claim.findOne({
       Claim_ID: req.params.id,
     });
+    if (
+      req.user.role === "ngo" &&
+      existingClaim.NGO_ID !== req.user.profileId
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only update claims made by your NGO.",
+      });
+    }
 
     if (!existingClaim) {
       return res.status(404).json({

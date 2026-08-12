@@ -150,15 +150,78 @@ const login = async (req, res) => {
 // ===============================
 // GET CURRENT USER
 // ===============================
+// ===============================
+// GET CURRENT USER
+// ===============================
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).select("-password");
+    let user = await User.findById(req.user._id).select("-password");
 
     if (!user) {
       return res.status(404).json({
         success: false,
         message: "User not found.",
       });
+    }
+
+    // ======================================================
+    // AUTO-LINK EXISTING NGO PROFILE
+    // ======================================================
+
+    if (user.role === "ngo" && !user.profileId) {
+      const NGO = require("../models/NGO.js");
+
+      const matchingNGOs = await NGO.find({
+        NGO_Name: user.name,
+      }).select("NGO_ID NGO_Name");
+
+      // Only auto-link when there is exactly one
+      // NGO with the same name.
+      if (matchingNGOs.length === 1) {
+        user = await User.findByIdAndUpdate(
+          user._id,
+          {
+            profileId: matchingNGOs[0].NGO_ID,
+          },
+          {
+            new: true,
+          },
+        ).select("-password");
+
+        console.log(
+          `✅ NGO profile auto-linked: ${user.name} -> ${user.profileId}`,
+        );
+      }
+    }
+
+    // ======================================================
+    // AUTO-LINK EXISTING DONOR PROFILE
+    // ======================================================
+
+    if (user.role === "donor" && !user.profileId) {
+      const Donor = require("../models/Donor.js");
+
+      const matchingDonors = await Donor.find({
+        Donor_Name: user.name,
+      }).select("Donor_ID Donor_Name");
+
+      // Only auto-link when there is exactly one
+      // donor with the same name.
+      if (matchingDonors.length === 1) {
+        user = await User.findByIdAndUpdate(
+          user._id,
+          {
+            profileId: matchingDonors[0].Donor_ID,
+          },
+          {
+            new: true,
+          },
+        ).select("-password");
+
+        console.log(
+          `✅ Donor profile auto-linked: ${user.name} -> ${user.profileId}`,
+        );
+      }
     }
 
     return res.status(200).json({
@@ -175,7 +238,6 @@ const getMe = async (req, res) => {
     });
   }
 };
-
 module.exports = {
   register,
   login,
