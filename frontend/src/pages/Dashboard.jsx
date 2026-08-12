@@ -27,6 +27,7 @@ import {
   getNGOs,
   getClaims,
   createClaim,
+  getMe,
 } from "../services/api.js";
 
 import StatCard from "../components/dashboard/StatCard.jsx";
@@ -36,7 +37,7 @@ import RecentClaims from "../components/dashboard/RecentClaims.jsx";
 import ClaimStatusTimeline from "../components/claims/ClaimStatusTimeline.jsx";
 
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const navigate = useNavigate();
 
   const role = user?.role;
@@ -459,21 +460,36 @@ const Dashboard = () => {
   // ======================================================
 
   const handleClaimDonation = async (donation) => {
-    if (!ngoId) {
-      setError(
-        "Your NGO profile is not linked to your account yet. Please contact the administrator.",
-      );
-
-      return;
-    }
-
     try {
       setClaimingDonationId(donation.Donation_ID);
       setError("");
 
+      let currentNgoId = user?.profileId || null;
+
+      // Refresh profile if the current
+      // session does not have NGO_ID.
+      if (!currentNgoId) {
+        const meData = await getMe();
+
+        if (meData?.user) {
+          updateUser(meData.user);
+
+          currentNgoId = meData.user.profileId;
+        }
+      }
+
+      if (!currentNgoId) {
+        setError(
+          "Please complete your NGO Registration before claiming donations.",
+        );
+        return;
+      }
+
       await createClaim({
         Donation_ID: donation.Donation_ID,
-        NGO_ID: ngoId,
+
+        NGO_ID: currentNgoId,
+
         Claim_Date: new Date().toISOString(),
       });
 

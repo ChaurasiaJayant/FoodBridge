@@ -31,7 +31,7 @@ const NGOForm = ({ onSuccess }) => {
 
   const [error, setError] = useState("");
 
-  const { updateUser } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -55,10 +55,6 @@ const NGOForm = ({ onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // ==================================================
-    // VALIDATION
-    // ==================================================
 
     if (!formData.NGO_Name.trim()) {
       setError("Please enter NGO name.");
@@ -100,7 +96,7 @@ const NGOForm = ({ onSuccess }) => {
       setError("");
 
       // ==================================================
-      // CREATE NGO PROFILE
+      // CREATE NGO
       // ==================================================
 
       const response = await createNGO({
@@ -123,16 +119,36 @@ const NGOForm = ({ onSuccess }) => {
 
       const ngo = response?.data || response?.ngo || response;
 
-      const ngoId = ngo?.NGO_ID || "Generated successfully";
+      const ngoId = ngo?.NGO_ID;
+
+      if (!ngoId) {
+        throw new Error("NGO was created but NGO_ID was not returned.");
+      }
+
+      updateUser({
+        ...user,
+        profileId: ngoId,
+      });
+
+      if (!ngoId) {
+        throw new Error(
+          "NGO was created but NGO_ID was not returned by the server.",
+        );
+      }
 
       // ==================================================
-      // SUCCESS CALLBACK
+      // IMMEDIATELY UPDATE AUTH CONTEXT
       // ==================================================
 
-      onSuccess?.(`NGO registered successfully! Your ID: ${ngoId}`);
+      const updatedUser = {
+        ...user,
+        profileId: ngoId,
+      };
+
+      updateUser(updatedUser);
 
       // ==================================================
-      // REFRESH LOGGED-IN USER
+      // CONFIRM WITH SERVER
       // ==================================================
 
       try {
@@ -141,12 +157,21 @@ const NGOForm = ({ onSuccess }) => {
         if (meData?.user) {
           updateUser(meData.user);
         }
-      } catch (e) {
-        console.error("Failed to refresh user:", e.message);
+      } catch (refreshError) {
+        console.error("Failed to refresh user:", refreshError.message);
+
+        // Keep the locally updated profileId.
+        // The backend already saved it.
       }
 
       // ==================================================
-      // RESET FORM
+      // SUCCESS
+      // ==================================================
+
+      onSuccess?.(`NGO registered successfully! Your ID: ${ngoId}`);
+
+      // ==================================================
+      // RESET
       // ==================================================
 
       setFormData(initialForm);
@@ -161,7 +186,6 @@ const NGOForm = ({ onSuccess }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Error */}
       {error && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
           {error}
@@ -169,10 +193,7 @@ const NGOForm = ({ onSuccess }) => {
       )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* ==================================================
-            NGO NAME
-        ================================================== */}
-
+        {/* NGO NAME */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             NGO Name
@@ -195,10 +216,7 @@ const NGOForm = ({ onSuccess }) => {
           </div>
         </div>
 
-        {/* ==================================================
-            CITY
-        ================================================== */}
-
+        {/* CITY */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             City
@@ -221,10 +239,7 @@ const NGOForm = ({ onSuccess }) => {
           </div>
         </div>
 
-        {/* ==================================================
-            LOCATION
-        ================================================== */}
-
+        {/* LOCATION */}
         <div className="md:col-span-2">
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Location
@@ -241,10 +256,7 @@ const NGOForm = ({ onSuccess }) => {
           )}
         </div>
 
-        {/* ==================================================
-            CAPACITY
-        ================================================== */}
-
+        {/* CAPACITY */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Capacity (KG)
@@ -268,10 +280,7 @@ const NGOForm = ({ onSuccess }) => {
           </div>
         </div>
 
-        {/* ==================================================
-            SERVICE AREA
-        ================================================== */}
-
+        {/* SERVICE AREA */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Service Area
@@ -287,10 +296,7 @@ const NGOForm = ({ onSuccess }) => {
           />
         </div>
 
-        {/* ==================================================
-            CONTACT
-        ================================================== */}
-
+        {/* CONTACT */}
         <div>
           <label className="mb-2 block text-sm font-medium text-gray-700">
             Contact
@@ -315,10 +321,6 @@ const NGOForm = ({ onSuccess }) => {
           </div>
         </div>
       </div>
-
-      {/* ==================================================
-          SUBMIT
-      ================================================== */}
 
       <button
         type="submit"

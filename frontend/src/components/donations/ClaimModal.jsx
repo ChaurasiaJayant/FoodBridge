@@ -4,30 +4,42 @@ import { AlertCircle, Building2, CheckCircle2, Loader2, X } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext.jsx";
 
-import { createClaim } from "../../services/api.js";
+import { createClaim, getMe } from "../../services/api.js";
 
 const ClaimModal = ({ donation, onClose, onSuccess }) => {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const [submitting, setSubmitting] = useState(false);
 
+  const [refreshingUser, setRefreshingUser] = useState(false);
+
   const [error, setError] = useState("");
 
-  // Logged-in NGO's own profile ID
-  const ngoId = user?.profileId;
+  const ngoId = user?.profileId || null;
 
-  // ======================================================
-  // CLAIM DONATION
-  // ======================================================
+  const refreshUserProfile = async () => {
+    try {
+      setRefreshingUser(true);
+
+      const meData = await getMe();
+
+      if (meData?.user) {
+        updateUser(meData.user);
+
+        return meData.user.profileId || null;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Failed to refresh NGO profile:", error);
+
+      return null;
+    } finally {
+      setRefreshingUser(false);
+    }
+  };
 
   const handleClaim = async () => {
-    if (!ngoId) {
-      setError(
-        "Please complete your NGO Registration before claiming donations.",
-      );
-      return;
-    }
-
     if (!donation?.Donation_ID) {
       setError("Donation ID is missing.");
       return;
@@ -37,25 +49,34 @@ const ClaimModal = ({ donation, onClose, onSuccess }) => {
       setSubmitting(true);
       setError("");
 
-      const payload = {
-        Donation_ID: donation.Donation_ID,
+      let currentNgoId = user?.profileId || null;
 
-        NGO_ID: ngoId,
+      if (!currentNgoId) {
+        const meData = await getMe();
 
-        Claim_Date: new Date().toISOString(),
-      };
+        if (meData?.user) {
+          updateUser(meData.user);
 
-      console.log("Sending claim payload:", payload);
-
-      const response = await createClaim(payload);
-
-      console.log("Claim API response:", response);
-
-      if (!response) {
-        throw new Error("The server returned an empty response.");
+          currentNgoId = meData.user.profileId;
+        }
       }
 
-      const claim = response?.data || response?.claim || null;
+      if (!currentNgoId) {
+        setError(
+          "Please complete your NGO Registration before claiming donations.",
+        );
+        return;
+      }
+
+      const response = await createClaim({
+        Donation_ID: donation.Donation_ID,
+
+        NGO_ID: currentNgoId,
+
+        Claim_Date: new Date().toISOString(),
+      });
+
+      const claim = response?.data || response?.claim || response;
 
       const claimId = claim?.Claim_ID || "Created successfully";
 
@@ -82,10 +103,6 @@ const ClaimModal = ({ donation, onClose, onSuccess }) => {
         className="w-full max-w-md overflow-hidden rounded-3xl border border-white/60 bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* ==================================================
-            HEADER
-        ================================================== */}
-
         <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
           <div>
             <h2 className="text-xl font-bold text-gray-900">Claim Donation</h2>
@@ -103,10 +120,6 @@ const ClaimModal = ({ donation, onClose, onSuccess }) => {
             <X size={19} />
           </button>
         </div>
-
-        {/* ==================================================
-            DONATION INFO
-        ================================================== */}
 
         <div className="px-6 pt-5">
           <div className="rounded-2xl border border-green-100 bg-green-50 p-4">
@@ -146,10 +159,6 @@ const ClaimModal = ({ donation, onClose, onSuccess }) => {
           </div>
         </div>
 
-        {/* ==================================================
-            NGO PROFILE
-        ================================================== */}
-
         {ngoId ? (
           <div className="px-6 py-5">
             <label className="mb-2 block text-sm font-semibold text-gray-800">
@@ -182,10 +191,6 @@ const ClaimModal = ({ donation, onClose, onSuccess }) => {
           </div>
         )}
 
-        {/* ==================================================
-            ERROR
-        ================================================== */}
-
         {error && (
           <div className="mx-6 mb-4 flex gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
             <AlertCircle size={17} className="mt-0.5 shrink-0" />
@@ -193,10 +198,6 @@ const ClaimModal = ({ donation, onClose, onSuccess }) => {
             <span>{error}</span>
           </div>
         )}
-
-        {/* ==================================================
-            FOOTER
-        ================================================== */}
 
         <div className="flex justify-end gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
           <button
@@ -211,13 +212,14 @@ const ClaimModal = ({ donation, onClose, onSuccess }) => {
           <button
             type="button"
             onClick={handleClaim}
-            disabled={!ngoId || submitting}
+            disabled={submitting || refreshingUser}
             className="flex items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {submitting ? (
+            {submitting || refreshingUser ? (
               <>
                 <Loader2 size={17} className="animate-spin" />
-                Claiming...
+
+                {refreshingUser ? "Checking profile..." : "Claiming..."}
               </>
             ) : (
               "Confirm Claim"

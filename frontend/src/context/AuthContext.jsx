@@ -1,11 +1,13 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 const AuthContext = createContext(null);
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export const AuthProvider = ({ children }) => {
   // ======================================================
   // TOKEN
-  // Session lasts only for the current browser tab.
   // ======================================================
 
   const [token, setToken] = useState(() => {
@@ -39,14 +41,12 @@ export const AuthProvider = ({ children }) => {
   // ======================================================
 
   const login = (newToken, newUser) => {
-    // Store authentication only in this tab.
     sessionStorage.setItem("token", newToken);
 
     sessionStorage.setItem("user", JSON.stringify(newUser));
 
-    // Remove old persistent authentication
-    // from previous versions.
     localStorage.removeItem("token");
+
     localStorage.removeItem("user");
 
     setToken(newToken);
@@ -64,6 +64,68 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ======================================================
+  // REFRESH USER FROM BACKEND
+  // ======================================================
+
+  const refreshUser = async () => {
+    const currentToken = sessionStorage.getItem("token");
+
+    if (!currentToken) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: {
+          Authorization: `Bearer ${currentToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          sessionStorage.removeItem("token");
+
+          sessionStorage.removeItem("user");
+
+          setToken(null);
+          setUser(null);
+        }
+
+        return null;
+      }
+
+      const data = await response.json();
+
+      if (data?.user) {
+        sessionStorage.setItem("user", JSON.stringify(data.user));
+
+        setUser(data.user);
+
+        return data.user;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+
+      return null;
+    }
+  };
+
+  // ======================================================
+  // REFRESH USER WHEN APP LOADS
+  // ======================================================
+
+  useEffect(() => {
+    if (!token) {
+      return;
+    }
+
+    refreshUser();
+  }, [token]);
+
+  // ======================================================
   // LOGOUT
   // ======================================================
 
@@ -72,8 +134,8 @@ export const AuthProvider = ({ children }) => {
 
     sessionStorage.removeItem("user");
 
-    // Clean old persistent auth.
     localStorage.removeItem("token");
+
     localStorage.removeItem("user");
 
     setToken(null);
@@ -93,6 +155,7 @@ export const AuthProvider = ({ children }) => {
         token,
         login,
         updateUser,
+        refreshUser,
         logout,
         isAuth,
       }}
