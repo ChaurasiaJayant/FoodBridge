@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 
 import Sidebar from "./Sidebar.jsx";
 import TopNavBar from "./TopNavbar.jsx";
+import FAQ from "../common/FAQ.jsx";
 
 const Layout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -37,6 +38,7 @@ const Layout = () => {
           <Outlet />
         </main>
       </div>
+      <FAQ />
     </div>
   );
 };
