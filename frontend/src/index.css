@@ -1,38 +1,77 @@
-@import "tailwindcss";
+/* @import "tailwindcss";
 
 /* =====================================================
    FOODBRIDGE DESIGN SYSTEM
-   Change these variables to change the whole palette.
+   Green + Blue Community Palette
    ===================================================== */
 
 :root {
-  /* Primary - Food / Nature */
+  /* =====================================================
+     PRIMARY - FOOD / SUSTAINABILITY
+     ===================================================== */
   --color-primary: #22c55e;
   --color-primary-dark: #16a34a;
   --color-primary-light: #dcfce7;
 
-  /* Secondary - Urgency / Priority */
-  --color-secondary: #f97316;
-  --color-secondary-dark: #ea580c;
-  --color-secondary-light: #ffedd5;
+  /* =====================================================
+     SECONDARY - COMMUNITY / NGO
+     ===================================================== */
+  --color-secondary: #3b82f6;
+  --color-secondary-dark: #2563eb;
+  --color-secondary-light: #dbeafe;
 
-  /* Base */
+  /* =====================================================
+     BASE
+     ===================================================== */
   --color-background: #f8fafc;
   --color-surface: #ffffff;
 
-  /* Text */
+  /* =====================================================
+     TEXT
+     ===================================================== */
   --color-text: #0f172a;
   --color-text-muted: #64748b;
 
-  /* Border */
+  /* =====================================================
+     BORDER
+     ===================================================== */
   --color-border: #e2e8f0;
 
-  /* Feedback */
+  /* =====================================================
+     FEEDBACK
+     ===================================================== */
   --color-success: #22c55e;
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
   --color-info: #3b82f6;
+
+  /* =====================================================
+     ROLE COLORS
+     ===================================================== */
+
+  /* Donor */
+  --color-donor: #22c55e;
+  --color-donor-light: #dcfce7;
+
+  /* NGO */
+  --color-ngo: #3b82f6;
+  --color-ngo-dark: #2563eb;
+  --color-ngo-light: #dbeafe;
+
+  /* Admin */
+  --color-admin: #8b5cf6;
+  --color-admin-light: #ede9fe;
+
+  /* =====================================================
+     LANDING / DARK NAVY
+     ===================================================== */
+  --color-navy: #0a1628;
+  --color-navy-light: #0f172a;
 }
+
+/* =====================================================
+   TAILWIND THEME
+   ===================================================== */
 
 @theme {
   --color-primary: var(--color-primary);
@@ -55,7 +94,24 @@
   --color-warning: var(--color-warning);
   --color-danger: var(--color-danger);
   --color-info: var(--color-info);
+
+  --color-donor: var(--color-donor);
+  --color-donor-light: var(--color-donor-light);
+
+  --color-ngo: var(--color-ngo);
+  --color-ngo-dark: var(--color-ngo-dark);
+  --color-ngo-light: var(--color-ngo-light);
+
+  --color-admin: var(--color-admin);
+  --color-admin-light: var(--color-admin-light);
+
+  --color-navy: var(--color-navy);
+  --color-navy-light: var(--color-navy-light);
 }
+
+/* =====================================================
+   GLOBAL RESET
+   ===================================================== */
 
 * {
   box-sizing: border-box;
@@ -81,6 +137,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* =====================================================
+   INTERACTION
+   ===================================================== */
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
@@ -90,12 +150,18 @@ button {
   cursor: pointer;
 }
 
+/* =====================================================
+   TEXT SELECTION
+   ===================================================== */
+
 ::selection {
   background: #bbf7d0;
   color: #14532d;
 }
 
-/* Beautiful scrollbar */
+/* =====================================================
+   SCROLLBAR
+   ===================================================== */
 
 ::-webkit-scrollbar {
   width: 7px;

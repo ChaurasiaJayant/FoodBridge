@@ -122,7 +122,9 @@ const Sidebar = ({ isOpen, onClose }) => {
           </div>
 
           <div>
-            <h1 className="text-lg font-bold text-gray-900">FoodBridge</h1>
+            <h1 className="text-lg font-bold text-gray-900">
+              HelpingHands Kitchen
+            </h1>
             <p className="text-xs text-gray-500">Food Redistribution</p>
           </div>
 
