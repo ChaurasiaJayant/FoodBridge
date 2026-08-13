@@ -1,20 +1,20 @@
-/* @import "tailwindcss";
+@import "tailwindcss";
 
 /* =====================================================
-   HelpingHands Kitchen DESIGN SYSTEM
+   HELPINGHANDS KITCHEN DESIGN SYSTEM
    Green + Blue Community Palette
    ===================================================== */
 
 :root {
   /* =====================================================
-     PRIMARY - FOOD / SUSTAINABILITY
+     PRIMARY — FOOD / DONORS / SUSTAINABILITY
      ===================================================== */
   --color-primary: #22c55e;
   --color-primary-dark: #16a34a;
   --color-primary-light: #dcfce7;
 
   /* =====================================================
-     SECONDARY - COMMUNITY / NGO
+     SECONDARY — NGO / COMMUNITY / TRUST
      ===================================================== */
   --color-secondary: #3b82f6;
   --color-secondary-dark: #2563eb;
@@ -51,6 +51,7 @@
 
   /* Donor */
   --color-donor: #22c55e;
+  --color-donor-dark: #16a34a;
   --color-donor-light: #dcfce7;
 
   /* NGO */
@@ -60,10 +61,11 @@
 
   /* Admin */
   --color-admin: #8b5cf6;
+  --color-admin-dark: #7c3aed;
   --color-admin-light: #ede9fe;
 
   /* =====================================================
-     LANDING / DARK NAVY
+     DARK BRAND / LANDING PAGE
      ===================================================== */
   --color-navy: #0a1628;
   --color-navy-light: #0f172a;
@@ -96,6 +98,7 @@
   --color-info: var(--color-info);
 
   --color-donor: var(--color-donor);
+  --color-donor-dark: var(--color-donor-dark);
   --color-donor-light: var(--color-donor-light);
 
   --color-ngo: var(--color-ngo);
@@ -103,6 +106,7 @@
   --color-ngo-light: var(--color-ngo-light);
 
   --color-admin: var(--color-admin);
+  --color-admin-dark: var(--color-admin-dark);
   --color-admin-light: var(--color-admin-light);
 
   --color-navy: var(--color-navy);
@@ -126,6 +130,7 @@ body {
   min-width: 320px;
   background: var(--color-background);
   color: var(--color-text);
+
   font-family:
     Inter,
     ui-sans-serif,
@@ -134,7 +139,9 @@ body {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 /* =====================================================

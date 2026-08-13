@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import { Link, useNavigate } from "react-router-dom";
 
 import {
@@ -27,7 +28,6 @@ import {
   getNGOs,
   getClaims,
   createClaim,
-  getMe,
 } from "../services/api.js";
 
 import StatCard from "../components/dashboard/StatCard.jsx";
@@ -37,7 +37,7 @@ import RecentClaims from "../components/dashboard/RecentClaims.jsx";
 import ClaimStatusTimeline from "../components/claims/ClaimStatusTimeline.jsx";
 
 const Dashboard = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const role = user?.role;
@@ -130,9 +130,13 @@ const Dashboard = () => {
       ]);
 
       const donorList = extractArray(donorsResponse, ["donors"]);
+
       const donationList = extractArray(donationsResponse, ["donations"]);
+
       const availableList = extractArray(availableResponse, ["donations"]);
+
       const ngoList = extractArray(ngosResponse, ["ngos"]);
+
       const claimList = extractArray(claimsResponse, ["claims"]);
 
       setDonors(donorList);
@@ -199,9 +203,11 @@ const Dashboard = () => {
       ]);
 
       const donationList = extractArray(donationsResponse, ["donations"]);
+
       const claimList = extractArray(claimsResponse, ["claims"]);
 
       setDonations(donationList);
+
       setClaims(claimList);
     } catch (err) {
       console.error("NGO dashboard fetch error:", err);
@@ -272,6 +278,7 @@ const Dashboard = () => {
     .slice(0, 5);
 
   const now = Date.now();
+
   const threeHoursFromNow = now + 3 * 60 * 60 * 1000;
 
   const adminHighPriorityDonations = adminAvailableDonations
@@ -311,25 +318,25 @@ const Dashboard = () => {
       title: "Available Donations",
       value: adminAvailableDonations.length,
       icon: PackageCheck,
-      iconBg: "bg-orange-50",
-      iconColor: "text-orange-500",
-      accent: "bg-orange-500",
+      iconBg: "bg-blue-50",
+      iconColor: "text-blue-600",
+      accent: "bg-blue-500",
     },
     {
       title: "Total NGOs",
       value: ngos.length,
       icon: Building2,
-      iconBg: "bg-green-50",
-      iconColor: "text-green-600",
-      accent: "bg-green-500",
+      iconBg: "bg-blue-50",
+      iconColor: "text-blue-600",
+      accent: "bg-blue-500",
     },
     {
       title: "Total Claims",
       value: adminClaims.length,
       icon: ClipboardList,
-      iconBg: "bg-orange-50",
-      iconColor: "text-orange-500",
-      accent: "bg-orange-500",
+      iconBg: "bg-purple-50",
+      iconColor: "text-purple-600",
+      accent: "bg-purple-500",
     },
     {
       title: "Successful Deliveries",
@@ -396,9 +403,9 @@ const Dashboard = () => {
       title: "Available",
       value: donorAvailable,
       icon: PackageCheck,
-      iconBg: "bg-orange-50",
-      iconColor: "text-orange-500",
-      accent: "bg-orange-500",
+      iconBg: "bg-green-50",
+      iconColor: "text-green-600",
+      accent: "bg-green-500",
     },
     {
       title: "Claimed",
@@ -460,35 +467,23 @@ const Dashboard = () => {
   // ======================================================
 
   const handleClaimDonation = async (donation) => {
+    if (!ngoId) {
+      setError(
+        "Your NGO profile is not linked to your account yet. Please complete your NGO registration.",
+      );
+
+      return;
+    }
+
     try {
       setClaimingDonationId(donation.Donation_ID);
+
       setError("");
-
-      let currentNgoId = user?.profileId || null;
-
-      // Refresh profile if the current
-      // session does not have NGO_ID.
-      if (!currentNgoId) {
-        const meData = await getMe();
-
-        if (meData?.user) {
-          updateUser(meData.user);
-
-          currentNgoId = meData.user.profileId;
-        }
-      }
-
-      if (!currentNgoId) {
-        setError(
-          "Please complete your NGO Registration before claiming donations.",
-        );
-        return;
-      }
 
       await createClaim({
         Donation_ID: donation.Donation_ID,
 
-        NGO_ID: currentNgoId,
+        NGO_ID: ngoId,
 
         Claim_Date: new Date().toISOString(),
       });
@@ -529,9 +524,9 @@ const Dashboard = () => {
     return (
       <div className="flex min-h-[500px] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-green-600" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-green-600" />
 
-          <p className="text-sm text-gray-500">Loading your dashboard...</p>
+          <p className="text-sm text-slate-500">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -559,6 +554,7 @@ const Dashboard = () => {
         </div>
 
         <button
+          type="button"
           onClick={() => setError("")}
           className="ml-auto rounded-lg p-1 text-red-400 transition hover:bg-red-100 hover:text-red-600"
         >
@@ -579,26 +575,27 @@ const Dashboard = () => {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="mb-1 flex items-center gap-2">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
+              <span className="h-2 w-2 animate-pulse rounded-full bg-purple-500" />
 
-              <span className="text-sm font-semibold text-green-600">
+              <span className="text-sm font-semibold text-purple-600">
                 Live Overview
               </span>
             </div>
 
-            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
+            <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
               Welcome to HelpingHands Kitchen
             </h1>
 
-            <p className="mt-1 text-gray-500">
+            <p className="mt-1 text-slate-500">
               Monitor food donations and deliveries in real time.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-60"
           >
             <RefreshCw size={17} className={refreshing ? "animate-spin" : ""} />
 
@@ -627,10 +624,10 @@ const Dashboard = () => {
 
         {/* Auto Refresh */}
         <div className="flex justify-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1.5 text-xs text-gray-400">
+          <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1.5 text-xs text-slate-400">
             <span
               className={`h-1.5 w-1.5 rounded-full ${
-                refreshing ? "animate-pulse bg-green-500" : "bg-gray-400"
+                refreshing ? "animate-pulse bg-purple-500" : "bg-slate-400"
               }`}
             />
             Auto-refreshing every 30 seconds
@@ -697,17 +694,18 @@ const Dashboard = () => {
         {/* Quick Action */}
         <div className="flex flex-col gap-4 rounded-2xl border border-green-100 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-bold text-gray-900">
+            <h2 className="font-bold text-slate-900">
               Have more food to donate?
             </h2>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-slate-500">
               Create a new donation and help connect surplus food with people
               who need it.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={() => navigate("/donation/create")}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-green-700"
           >
@@ -717,12 +715,12 @@ const Dashboard = () => {
         </div>
 
         {/* Recent My Donations */}
-        <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-5">
+        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5">
             <div>
-              <h2 className="font-bold text-gray-900">Recent My Donations</h2>
+              <h2 className="font-bold text-slate-900">Recent My Donations</h2>
 
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-slate-500">
                 Your latest food donations
               </p>
             </div>
@@ -738,13 +736,13 @@ const Dashboard = () => {
 
           {donorRecentDonations.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-5 py-14">
-              <PackageCheck size={32} className="text-gray-300" />
+              <PackageCheck size={32} className="text-slate-300" />
 
-              <p className="mt-3 text-sm font-medium text-gray-500">
+              <p className="mt-3 text-sm font-medium text-slate-500">
                 No donations found
               </p>
 
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-slate-400">
                 Your recent donations will appear here.
               </p>
             </div>
@@ -752,40 +750,40 @@ const Dashboard = () => {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[650px]">
                 <thead>
-                  <tr className="border-b border-gray-100 bg-gray-50">
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                  <tr className="border-b border-slate-100 bg-slate-50">
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Donation ID
                     </th>
 
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Food Category
                     </th>
 
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Quantity
                     </th>
 
-                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                    <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                       Status
                     </th>
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-100">
                   {donorRecentDonations.map((donation) => (
                     <tr
                       key={donation.Donation_ID}
-                      className="transition hover:bg-gray-50"
+                      className="transition hover:bg-slate-50"
                     >
-                      <td className="px-5 py-4 text-sm font-semibold text-gray-900">
+                      <td className="px-5 py-4 text-sm font-semibold text-slate-900">
                         {donation.Donation_ID}
                       </td>
 
-                      <td className="px-5 py-4 text-sm text-gray-700">
+                      <td className="px-5 py-4 text-sm text-slate-700">
                         {donation.Food_Category}
                       </td>
 
-                      <td className="px-5 py-4 text-sm text-gray-600">
+                      <td className="px-5 py-4 text-sm text-slate-600">
                         {donation.Quantity_KG} KG
                       </td>
 
@@ -799,7 +797,7 @@ const Dashboard = () => {
                                 : donation.Status === "Picked Up"
                                   ? "bg-orange-50 text-orange-700"
                                   : donation.Status === "Delivered"
-                                    ? "bg-gray-100 text-gray-700"
+                                    ? "bg-purple-50 text-purple-700"
                                     : "bg-red-50 text-red-700"
                           }`}
                         >
@@ -822,23 +820,23 @@ const Dashboard = () => {
             </div>
 
             <div>
-              <h2 className="font-bold text-gray-900">
+              <h2 className="font-bold text-slate-900">
                 High Priority Donations
               </h2>
 
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-500">
                 Your donations expiring within 3 hours
               </p>
             </div>
           </div>
 
           {donorHighPriorityDonations.length === 0 ? (
-            <div className="rounded-xl border border-gray-100 bg-gray-50 p-5 text-center">
-              <p className="text-sm font-medium text-gray-600">
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-5 text-center">
+              <p className="text-sm font-medium text-slate-600">
                 No urgent donations
               </p>
 
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-slate-400">
                 None of your available donations expire within the next 3 hours.
               </p>
             </div>
@@ -851,11 +849,11 @@ const Dashboard = () => {
                 >
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="font-bold text-gray-900">
+                      <p className="font-bold text-slate-900">
                         {donation.Food_Category}
                       </p>
 
-                      <p className="mt-1 text-xs text-gray-400">
+                      <p className="mt-1 text-xs text-slate-400">
                         {donation.Donation_ID}
                       </p>
                     </div>
@@ -887,9 +885,10 @@ const Dashboard = () => {
         {/* Refresh */}
         <div className="flex justify-center">
           <button
+            type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:border-green-300 hover:text-green-600 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-green-300 hover:text-green-600 disabled:opacity-60"
           >
             <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
 
@@ -992,16 +991,17 @@ const Dashboard = () => {
         {/* Quick Action */}
         <div className="flex flex-col gap-4 rounded-2xl border border-blue-100 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="font-bold text-gray-900">Looking for more food?</h2>
+            <h2 className="font-bold text-slate-900">Looking for more food?</h2>
 
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-slate-500">
               Browse all currently available food donations.
             </p>
           </div>
 
           <button
+            type="button"
             onClick={() => navigate("/donations")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-green-700"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-blue-700"
           >
             View All Available
             <ArrowRight size={17} />
@@ -1009,19 +1009,19 @@ const Dashboard = () => {
         </div>
 
         {/* Available Donations */}
-        <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+        <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-gray-900">Available Donations</h2>
+              <h2 className="font-bold text-slate-900">Available Donations</h2>
 
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-slate-500">
                 Food currently available for your NGO to claim
               </p>
             </div>
 
             <Link
               to="/donations"
-              className="flex items-center gap-1 text-sm font-semibold text-green-600 hover:text-green-700"
+              className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
             >
               View All
               <ArrowRight size={15} />
@@ -1029,14 +1029,14 @@ const Dashboard = () => {
           </div>
 
           {topAvailableDonations.length === 0 ? (
-            <div className="rounded-xl border border-gray-100 bg-gray-50 p-10 text-center">
-              <PackageCheck size={35} className="mx-auto text-gray-300" />
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-10 text-center">
+              <PackageCheck size={35} className="mx-auto text-slate-300" />
 
-              <p className="mt-3 text-sm font-semibold text-gray-600">
+              <p className="mt-3 text-sm font-semibold text-slate-600">
                 No donations available
               </p>
 
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-slate-400">
                 New donations will appear here when donors add them.
               </p>
             </div>
@@ -1045,15 +1045,15 @@ const Dashboard = () => {
               {topAvailableDonations.map((donation) => (
                 <div
                   key={donation.Donation_ID}
-                  className="rounded-xl border border-green-100 bg-green-50/50 p-4 transition hover:border-green-200 hover:shadow-sm"
+                  className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 transition hover:border-blue-200 hover:shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-green-600">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">
                         {donation.Donation_ID}
                       </p>
 
-                      <h3 className="mt-1 font-bold text-gray-900">
+                      <h3 className="mt-1 font-bold text-slate-900">
                         {donation.Food_Category}
                       </h3>
                     </div>
@@ -1065,18 +1065,18 @@ const Dashboard = () => {
 
                   <div className="mt-4 grid grid-cols-2 gap-3">
                     <div className="rounded-lg bg-white p-3">
-                      <p className="text-xs text-gray-400">Quantity</p>
+                      <p className="text-xs text-slate-400">Quantity</p>
 
-                      <p className="mt-1 font-bold text-gray-800">
+                      <p className="mt-1 font-bold text-slate-800">
                         {donation.Quantity_KG} KG
                       </p>
                     </div>
 
                     <div className="rounded-lg bg-white p-3">
-                      <p className="text-xs text-gray-400">Location</p>
+                      <p className="text-xs text-slate-400">Location</p>
 
-                      <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-gray-700">
-                        <MapPin size={13} className="text-green-600" />
+                      <p className="mt-1 flex items-center gap-1 text-xs font-semibold text-slate-700">
+                        <MapPin size={13} className="text-blue-600" />
 
                         <span className="truncate">{donation.Location}</span>
                       </p>
@@ -1084,11 +1084,12 @@ const Dashboard = () => {
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => handleClaimDonation(donation)}
                     disabled={
                       claimingDonationId === donation.Donation_ID || !ngoId
                     }
-                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {claimingDonationId === donation.Donation_ID ? (
                       <>
@@ -1109,19 +1110,19 @@ const Dashboard = () => {
         </section>
 
         {/* My Recent Claims */}
-        <section className="rounded-2xl border border-gray-100 bg-white shadow-sm">
-          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-5">
+        <section className="rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5">
             <div>
-              <h2 className="font-bold text-gray-900">My Recent Claims</h2>
+              <h2 className="font-bold text-slate-900">My Recent Claims</h2>
 
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-slate-500">
                 Track your claimed donations
               </p>
             </div>
 
             <Link
               to="/claims"
-              className="flex items-center gap-1 text-sm font-semibold text-green-600 hover:text-green-700"
+              className="flex items-center gap-1 text-sm font-semibold text-blue-600 hover:text-blue-700"
             >
               View All
               <ArrowRight size={15} />
@@ -1130,39 +1131,39 @@ const Dashboard = () => {
 
           {recentNGOClaims.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-5 py-14">
-              <ClipboardList size={32} className="text-gray-300" />
+              <ClipboardList size={32} className="text-slate-300" />
 
-              <p className="mt-3 text-sm font-medium text-gray-500">
+              <p className="mt-3 text-sm font-medium text-slate-500">
                 No claims found
               </p>
 
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-slate-400">
                 Your claims will appear here after you claim a donation.
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-slate-100">
               {recentNGOClaims.map((claim) => (
                 <div key={claim.Claim_ID} className="overflow-x-auto px-5 py-5">
                   <div className="mb-4 flex min-w-[600px] items-center justify-between gap-4">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                         Claim ID
                       </p>
 
-                      <p className="mt-1 font-bold text-gray-900">
+                      <p className="mt-1 font-bold text-slate-900">
                         {claim.Claim_ID}
                       </p>
 
-                      <p className="mt-1 text-xs text-gray-500">
+                      <p className="mt-1 text-xs text-slate-500">
                         Donation: {claim.Donation_ID}
                       </p>
                     </div>
 
                     <div className="text-right">
-                      <p className="text-xs text-gray-400">Claim Date</p>
+                      <p className="text-xs text-slate-400">Claim Date</p>
 
-                      <p className="mt-1 text-sm font-semibold text-gray-700">
+                      <p className="mt-1 text-sm font-semibold text-slate-700">
                         {claim.Claim_Date
                           ? new Date(claim.Claim_Date).toLocaleDateString(
                               "en-IN",
@@ -1184,9 +1185,10 @@ const Dashboard = () => {
         {/* Refresh */}
         <div className="flex justify-center">
           <button
+            type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:border-green-300 hover:text-green-600 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm transition hover:border-blue-300 hover:text-blue-600 disabled:opacity-60"
           >
             <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} />
 
@@ -1203,18 +1205,19 @@ const Dashboard = () => {
 
   return (
     <div className="flex min-h-[500px] items-center justify-center">
-      <div className="rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-8 text-center shadow-sm">
         <AlertCircle size={35} className="mx-auto text-orange-500" />
 
-        <h2 className="mt-3 font-bold text-gray-900">
+        <h2 className="mt-3 font-bold text-slate-900">
           Unable to determine your role
         </h2>
 
-        <p className="mt-1 text-sm text-gray-500">Please log in again.</p>
+        <p className="mt-1 text-sm text-slate-500">Please log in again.</p>
 
         <button
+          type="button"
           onClick={() => navigate("/login/donor")}
-          className="mt-5 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
+          className="mt-5 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-green-700"
         >
           Go to Login
         </button>

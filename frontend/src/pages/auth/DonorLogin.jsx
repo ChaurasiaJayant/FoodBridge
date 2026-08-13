@@ -1,6 +1,8 @@
 import { useState } from "react";
+
+import { ArrowRight, HeartHandshake, Lock, LogIn, Mail } from "lucide-react";
+
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, LogIn, ArrowRight, HeartHandshake } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext.jsx";
 
@@ -9,6 +11,7 @@ const API_BASE_URL =
 
 const DonorLogin = () => {
   const navigate = useNavigate();
+
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -20,15 +23,19 @@ const DonorLogin = () => {
 
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value,
+    }));
+
+    setError("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
     try {
       setLoading(true);
@@ -58,7 +65,7 @@ const DonorLogin = () => {
     } catch (err) {
       console.error("Donor login error:", err);
 
-      setError(err.message || "Failed to fetch");
+      setError(err.message || "Unable to connect to the server.");
     } finally {
       setLoading(false);
     }
@@ -67,18 +74,32 @@ const DonorLogin = () => {
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-10">
       <div className="mx-auto flex min-h-[80vh] max-w-md items-center justify-center">
-        <div className="w-full rounded-2xl border border-white/70 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8">
+        <div className="w-full rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/60 sm:p-8">
+          {/* ==================================================
+              BRAND
+          ================================================== */}
+
           <div className="mb-8 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-green-600">
-              <HeartHandshake size={28} />
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-100 text-green-600">
+              <HeartHandshake size={30} />
             </div>
 
-            <h1 className="text-2xl font-bold text-slate-900">Donor Login</h1>
+            <p className="text-sm font-semibold text-green-600">
+              HelpingHands Kitchen
+            </p>
 
-            <p className="mt-2 text-sm text-slate-500">
-              Sign in to HelpingHands Kitchen as a donor.
+            <h1 className="mt-1 text-2xl font-bold text-slate-900">
+              Donor Login
+            </h1>
+
+            <p className="mt-2 text-sm leading-6 text-slate-500">
+              Sign in to manage your food donations and make an impact.
             </p>
           </div>
+
+          {/* ==================================================
+              ERROR
+          ================================================== */}
 
           {error && (
             <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -86,16 +107,21 @@ const DonorLogin = () => {
             </div>
           )}
 
+          {/* ==================================================
+              FORM
+          ================================================== */}
+
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Email */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
                 Email
               </label>
 
               <div className="relative">
                 <Mail
                   size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
 
                 <input
@@ -103,22 +129,24 @@ const DonorLogin = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  placeholder="Email address"
+                  placeholder="Enter your email"
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
+                  autoComplete="email"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-500/10"
                 />
               </div>
             </div>
 
+            {/* Password */}
             <div>
-              <label className="mb-2 block text-sm font-medium text-slate-700">
+              <label className="mb-2 block text-sm font-semibold text-slate-700">
                 Password
               </label>
 
               <div className="relative">
                 <Lock
                   size={18}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                 />
 
                 <input
@@ -126,21 +154,23 @@ const DonorLogin = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Password"
+                  placeholder="Enter your password"
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
+                  autoComplete="current-password"
+                  className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-500/10"
                 />
               </div>
             </div>
 
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3 font-semibold text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-5 text-sm font-bold text-white shadow-lg shadow-green-600/20 transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <>
-                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                   Signing in...
                 </>
               ) : (
@@ -152,16 +182,42 @@ const DonorLogin = () => {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
-            Don't have an account?{" "}
+          {/* ==================================================
+              REGISTER
+          ================================================== */}
+
+          <div className="mt-6 rounded-2xl border border-green-100 bg-green-50 p-4 text-center">
+            <p className="text-sm text-slate-600">
+              Don't have a donor account?
+            </p>
+
             <Link
               to="/register/donor"
-              className="font-semibold text-green-600 hover:text-green-700"
+              className="mt-2 inline-flex items-center gap-1 text-sm font-bold text-green-600 transition hover:text-green-700"
             >
-              Register
-              <ArrowRight className="ml-1 inline" size={14} />
+              Create donor account
+              <ArrowRight size={15} />
             </Link>
-          </p>
+          </div>
+
+          {/* ==================================================
+              NGO / ADMIN LINKS
+          ================================================== */}
+
+          <div className="mt-5 flex items-center justify-center gap-4 text-xs text-slate-400">
+            <Link to="/login/ngo" className="transition hover:text-blue-600">
+              NGO Login
+            </Link>
+
+            <span>•</span>
+
+            <Link
+              to="/login/admin"
+              className="transition hover:text-purple-600"
+            >
+              Admin Login
+            </Link>
+          </div>
         </div>
       </div>
     </div>

@@ -6,12 +6,13 @@ import {
   Building2,
   UsersRound,
   ClipboardList,
-  LogOut,
   BarChart2,
+  LogOut,
   X,
 } from "lucide-react";
 
 import { NavLink, useNavigate } from "react-router-dom";
+
 import { useAuth } from "../../context/AuthContext.jsx";
 
 const navigationItems = [
@@ -65,8 +66,9 @@ const navigationItems = [
   },
 ];
 
-const Sidebar = ({ isOpen, onClose }) => {
+const Sidebar = ({ isOpen = true, onClose = () => {} }) => {
   const { user, logout } = useAuth();
+
   const navigate = useNavigate();
 
   const userRole = user?.role?.toLowerCase();
@@ -77,70 +79,114 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const handleLogout = () => {
     logout();
-    navigate("/login/donor");
+
+    onClose();
+
+    navigate("/landing");
   };
 
-  const handleNavigation = () => {
-    onClose?.();
-  };
-
-  const getRoleBadgeClass = () => {
+  const getRoleConfig = () => {
     if (userRole === "donor") {
-      return "bg-green-100 text-green-700";
+      return {
+        badge: "bg-green-100 text-green-700",
+        avatar: "bg-green-100 text-green-700",
+        active: "bg-green-100 text-green-700",
+        icon: "text-green-600",
+      };
     }
 
     if (userRole === "ngo") {
-      return "bg-blue-100 text-blue-700";
+      return {
+        badge: "bg-blue-100 text-blue-700",
+        avatar: "bg-blue-100 text-blue-700",
+        active: "bg-blue-100 text-blue-700",
+        icon: "text-blue-600",
+      };
     }
 
     if (userRole === "admin") {
-      return "bg-purple-100 text-purple-700";
+      return {
+        badge: "bg-purple-100 text-purple-700",
+        avatar: "bg-purple-100 text-purple-700",
+        active: "bg-purple-100 text-purple-700",
+        icon: "text-purple-600",
+      };
     }
 
-    return "bg-gray-100 text-gray-700";
+    return {
+      badge: "bg-slate-100 text-slate-700",
+      avatar: "bg-slate-100 text-slate-700",
+      active: "bg-slate-100 text-slate-700",
+      icon: "text-slate-600",
+    };
   };
+
+  const roleConfig = getRoleConfig();
 
   return (
     <>
-      {/* Mobile Overlay */}
+      {/* ==================================================
+          MOBILE OVERLAY
+      ================================================== */}
+
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/50 backdrop-blur-sm lg:hidden"
           onClick={onClose}
+          aria-hidden="true"
         />
       )}
 
+      {/* ==================================================
+          SIDEBAR
+      ================================================== */}
+
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col border-r border-gray-200/60 bg-white/80 p-4 backdrop-blur-xl transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed left-0 top-0 z-50 flex h-screen w-64 flex-col border-r border-slate-200/70 bg-white/95 p-4 shadow-xl shadow-slate-900/5 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Logo / Header */}
-        <div className="mb-6 flex items-center gap-3 px-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-600">
-            <PackageOpen size={22} />
-          </div>
+        {/* ==================================================
+            LOGO / HEADER
+        ================================================== */}
 
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">
-              HelpingHands Kitchen
-            </h1>
-            <p className="text-xs text-gray-500">Food Redistribution</p>
-          </div>
+        <div className="mb-6 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="flex min-w-0 items-center gap-3 px-2 text-left"
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600">
+              <PackageOpen size={22} />
+            </div>
 
-          {/* Mobile Close Button */}
+            <div className="min-w-0">
+              <h1 className="truncate text-lg font-bold text-slate-900">
+                HelpingHands Kitchen
+              </h1>
+
+              <p className="truncate text-xs text-slate-500">
+                Food Redistribution
+              </p>
+            </div>
+          </button>
+
+          {/* Mobile close */}
           <button
             type="button"
             onClick={onClose}
-            className="ml-auto rounded-xl p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 lg:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 lg:hidden"
             aria-label="Close sidebar"
           >
-            <X size={20} />
+            <X size={19} />
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 space-y-2">
+        {/* ==================================================
+            NAVIGATION
+        ================================================== */}
+
+        <nav className="flex-1 space-y-2 overflow-y-auto pr-1">
           {filteredNavigationItems.map((item) => {
             const Icon = item.icon;
 
@@ -148,50 +194,80 @@ const Sidebar = ({ isOpen, onClose }) => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                onClick={handleNavigation}
+                onClick={() => {
+                  onClose();
+                }}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
+                  `group flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition ${
                     isActive
-                      ? "bg-green-100 text-green-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+                      ? roleConfig.active
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                   }`
                 }
               >
-                <Icon size={19} />
-                <span>{item.label}</span>
+                {({ isActive }) => (
+                  <>
+                    <Icon
+                      size={19}
+                      className={
+                        isActive
+                          ? roleConfig.icon
+                          : "text-slate-400 transition group-hover:text-slate-600"
+                      }
+                    />
+
+                    <span className="truncate">{item.label}</span>
+                  </>
+                )}
               </NavLink>
             );
           })}
         </nav>
 
-        {/* User Info */}
-        <div className="mb-3 rounded-2xl border border-gray-200/60 bg-white/80 p-3">
+        {/* ==================================================
+            USER INFO
+        ================================================== */}
+
+        <div className="mb-3 rounded-2xl border border-slate-200/70 bg-slate-50 p-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 font-semibold text-green-700">
+            <div
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-semibold ${roleConfig.avatar}`}
+            >
               {user?.name?.charAt(0)?.toUpperCase() || "U"}
             </div>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-gray-900">
+              <p className="truncate text-sm font-semibold text-slate-900">
                 {user?.name || "User"}
               </p>
 
               <span
-                className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize ${getRoleBadgeClass()}`}
+                className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-xs font-medium capitalize ${roleConfig.badge}`}
               >
                 {userRole || "user"}
               </span>
+
+              {user?.profileId && (
+                <p className="mt-1 truncate text-[11px] text-slate-400">
+                  {user.profileId}
+                </p>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Bottom Card / Logout */}
+        {/* ==================================================
+            LOGOUT
+        ================================================== */}
+
         <div className="rounded-2xl bg-green-50 p-3">
           <button
+            type="button"
             onClick={handleLogout}
             className="flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
           >
             <LogOut size={19} />
+
             <span>Logout</span>
           </button>
         </div>

@@ -1,12 +1,13 @@
 import { useState } from "react";
 
 import {
-  Loader2,
   Building2,
+  Loader2,
   MapPin,
-  Phone,
-  Users,
   Navigation,
+  Phone,
+  Send,
+  Users,
 } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -24,25 +25,47 @@ const initialForm = {
   Contact: "",
 };
 
-const NGOForm = ({ onSuccess }) => {
-  const [formData, setFormData] = useState(initialForm);
-
-  const [loading, setLoading] = useState(false);
-
-  const [error, setError] = useState("");
-
+const NGOForm = ({ onSuccess, onError }) => {
   const { user, updateUser } = useAuth();
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const [formData, setFormData] = useState(initialForm);
+
+  const [submitting, setSubmitting] = useState(false);
+
+  // =====================================================
+  // INPUT CHANGE
+  // =====================================================
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
 
     setFormData((previous) => ({
       ...previous,
       [name]: value,
     }));
 
-    setError("");
+    onError?.("");
   };
+
+  // =====================================================
+  // CONTACT CHANGE
+  // Maximum 10 digits
+  // =====================================================
+
+  const handleContactChange = (event) => {
+    const value = event.target.value.replace(/\D/g, "").slice(0, 10);
+
+    setFormData((previous) => ({
+      ...previous,
+      Contact: value,
+    }));
+
+    onError?.("");
+  };
+
+  // =====================================================
+  // MAP LOCATION
+  // =====================================================
 
   const handleLocationSelect = (result) => {
     setFormData((previous) => ({
@@ -50,54 +73,72 @@ const NGOForm = ({ onSuccess }) => {
       Location: result.address,
     }));
 
-    setError("");
+    onError?.("");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // =====================================================
+  // SUBMIT
+  // =====================================================
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    // -----------------------------------------------------
+    // NGO NAME
+    // -----------------------------------------------------
 
     if (!formData.NGO_Name.trim()) {
-      setError("Please enter NGO name.");
+      onError?.("Please enter NGO name.");
       return;
     }
+
+    // -----------------------------------------------------
+    // CITY
+    // -----------------------------------------------------
 
     if (!formData.City.trim()) {
-      setError("Please enter the city.");
+      onError?.("Please enter city.");
       return;
     }
+
+    // -----------------------------------------------------
+    // LOCATION
+    // -----------------------------------------------------
 
     if (!formData.Location.trim()) {
-      setError("Please select a location on the map.");
+      onError?.("Please select a location on the map.");
       return;
     }
+
+    // -----------------------------------------------------
+    // CAPACITY
+    // -----------------------------------------------------
 
     if (!formData.Capacity || Number(formData.Capacity) <= 0) {
-      setError("Please enter a valid capacity.");
+      onError?.("Please enter a valid capacity.");
       return;
     }
+
+    // -----------------------------------------------------
+    // SERVICE AREA
+    // -----------------------------------------------------
 
     if (!formData.Service_Area.trim()) {
-      setError("Please enter the service area.");
+      onError?.("Please enter service area.");
       return;
     }
 
-    if (!formData.Contact.trim()) {
-      setError("Please enter the contact number.");
-      return;
-    }
+    // -----------------------------------------------------
+    // CONTACT
+    // -----------------------------------------------------
 
     if (formData.Contact.length !== 10) {
-      setError("Contact number must be exactly 10 digits.");
+      onError?.("Contact number must be exactly 10 digits.");
       return;
     }
 
     try {
-      setLoading(true);
-      setError("");
-
-      // ==================================================
-      // CREATE NGO
-      // ==================================================
+      setSubmitting(true);
 
       const response = await createNGO({
         NGO_Name: formData.NGO_Name.trim(),
@@ -110,46 +151,39 @@ const NGOForm = ({ onSuccess }) => {
 
         Service_Area: formData.Service_Area.trim(),
 
-        Contact: formData.Contact.trim(),
+        Contact: formData.Contact,
       });
 
       if (!response?.success) {
-        throw new Error(response?.message || "Failed to register NGO.");
+        throw new Error(response?.message || "Failed to create NGO profile.");
       }
+
+      // ===================================================
+      // CREATED NGO
+      // ===================================================
 
       const ngo = response?.data || response?.ngo || response;
 
       const ngoId = ngo?.NGO_ID;
 
       if (!ngoId) {
-        throw new Error("NGO was created but NGO_ID was not returned.");
+        throw new Error("NGO was created but NGO ID was not returned.");
       }
 
-      updateUser({
-        ...user,
-        profileId: ngoId,
-      });
+      // ===================================================
+      // UPDATE USER IMMEDIATELY
+      // ===================================================
 
-      if (!ngoId) {
-        throw new Error(
-          "NGO was created but NGO_ID was not returned by the server.",
-        );
+      if (user) {
+        updateUser({
+          ...user,
+          profileId: ngoId,
+        });
       }
 
-      // ==================================================
-      // IMMEDIATELY UPDATE AUTH CONTEXT
-      // ==================================================
-
-      const updatedUser = {
-        ...user,
-        profileId: ngoId,
-      };
-
-      updateUser(updatedUser);
-
-      // ==================================================
-      // CONFIRM WITH SERVER
-      // ==================================================
+      // ===================================================
+      // CONFIRM USER FROM BACKEND
+      // ===================================================
 
       try {
         const meData = await getMe();
@@ -159,50 +193,45 @@ const NGOForm = ({ onSuccess }) => {
         }
       } catch (refreshError) {
         console.error("Failed to refresh user:", refreshError.message);
-
-        // Keep the locally updated profileId.
-        // The backend already saved it.
       }
 
-      // ==================================================
-      // SUCCESS
-      // ==================================================
-
-      onSuccess?.(`NGO registered successfully! Your ID: ${ngoId}`);
-
-      // ==================================================
+      // ===================================================
       // RESET
-      // ==================================================
+      // ===================================================
 
       setFormData(initialForm);
-    } catch (err) {
-      console.error("NGO registration error:", err);
 
-      setError(err.message || "Something went wrong while registering NGO.");
+      // ===================================================
+      // SUCCESS
+      // ===================================================
+
+      onSuccess?.(`NGO registered successfully! Your ID: ${ngoId}`);
+    } catch (error) {
+      console.error("NGO registration error:", error);
+
+      onError?.(error.message || "Unable to create NGO profile.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      <div className="grid gap-5 md:grid-cols-2">
+        {/* ==================================================
+            NGO NAME
+        ================================================== */}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        {/* NGO NAME */}
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-semibold text-slate-700">
             NGO Name
+            <span className="ml-1 text-red-500">*</span>
           </label>
 
           <div className="relative">
             <Building2
               size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
 
             <input
@@ -211,21 +240,25 @@ const NGOForm = ({ onSuccess }) => {
               value={formData.NGO_Name}
               onChange={handleChange}
               placeholder="Enter NGO name"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-11 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
             />
           </div>
         </div>
 
-        {/* CITY */}
+        {/* ==================================================
+            CITY
+        ================================================== */}
+
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-semibold text-slate-700">
             City
+            <span className="ml-1 text-red-500">*</span>
           </label>
 
           <div className="relative">
             <MapPin
               size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
 
             <input
@@ -234,38 +267,46 @@ const NGOForm = ({ onSuccess }) => {
               value={formData.City}
               onChange={handleChange}
               placeholder="e.g. Noida"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-11 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
             />
           </div>
         </div>
 
-        {/* LOCATION */}
+        {/* ==================================================
+            LOCATION
+        ================================================== */}
+
         <div className="md:col-span-2">
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-semibold text-slate-700">
             Location
+            <span className="ml-1 text-red-500">*</span>
           </label>
 
           <MapPicker onLocationSelect={handleLocationSelect} />
 
           {formData.Location && (
             <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-              <Navigation size={14} className="shrink-0 text-green-500" />
+              <Navigation size={14} className="shrink-0 text-blue-500" />
 
-              {formData.Location}
+              <span>{formData.Location}</span>
             </div>
           )}
         </div>
 
-        {/* CAPACITY */}
+        {/* ==================================================
+            CAPACITY
+        ================================================== */}
+
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Capacity (KG)
+          <label className="mb-2 block text-sm font-semibold text-slate-700">
+            Capacity
+            <span className="ml-1 text-red-500">*</span>
           </label>
 
           <div className="relative">
             <Users
               size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
 
             <input
@@ -275,15 +316,19 @@ const NGOForm = ({ onSuccess }) => {
               value={formData.Capacity}
               onChange={handleChange}
               placeholder="e.g. 500"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-11 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
             />
           </div>
         </div>
 
-        {/* SERVICE AREA */}
+        {/* ==================================================
+            SERVICE AREA
+        ================================================== */}
+
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
+          <label className="mb-2 block text-sm font-semibold text-slate-700">
             Service Area
+            <span className="ml-1 text-red-500">*</span>
           </label>
 
           <input
@@ -292,53 +337,94 @@ const NGOForm = ({ onSuccess }) => {
             value={formData.Service_Area}
             onChange={handleChange}
             placeholder="e.g. Noida, Greater Noida"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
+            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 px-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
           />
         </div>
 
-        {/* CONTACT */}
+        {/* ==================================================
+            CONTACT
+        ================================================== */}
+
         <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Contact
+          <label className="mb-2 block text-sm font-semibold text-slate-700">
+            Contact Number
+            <span className="ml-1 text-red-500">*</span>
           </label>
 
           <div className="relative">
             <Phone
               size={18}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
             />
 
             <input
               type="tel"
               name="Contact"
+              value={formData.Contact}
+              onChange={handleContactChange}
               inputMode="numeric"
               maxLength={10}
-              value={formData.Contact}
-              onChange={handleChange}
-              placeholder="Enter 10 digit contact number"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 outline-none transition focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
+              placeholder="Enter 10 digit number"
+              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/70 pl-11 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
             />
+          </div>
+
+          <p className="mt-1 text-xs text-slate-400">
+            Enter exactly 10 digits.
+          </p>
+        </div>
+      </div>
+
+      {/* ==================================================
+          LINKED NGO INFO
+      ================================================== */}
+
+      <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+        <div className="flex items-start gap-3">
+          <Building2 size={19} className="mt-0.5 shrink-0 text-blue-600" />
+
+          <div>
+            <p className="text-sm font-semibold text-slate-800">
+              Your NGO profile
+            </p>
+
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              After registration, your NGO ID will automatically be linked to
+              your HelpingHands Kitchen account.
+            </p>
+
+            {user?.profileId && (
+              <p className="mt-2 text-xs font-semibold text-blue-700">
+                Linked NGO ID: {user.profileId}
+              </p>
+            )}
           </div>
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 px-6 py-3.5 font-semibold text-white shadow-lg shadow-green-200 transition hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {loading ? (
-          <>
-            <Loader2 size={20} className="animate-spin" />
-            Registering...
-          </>
-        ) : (
-          <>
-            <Building2 size={20} />
-            Register NGO
-          </>
-        )}
-      </button>
+      {/* ==================================================
+          SUBMIT
+      ================================================== */}
+
+      <div className="flex justify-end border-t border-slate-100 pt-6">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="flex h-12 min-w-[190px] items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-blue-600/30 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+        >
+          {submitting ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              Registering...
+            </>
+          ) : (
+            <>
+              <Send size={18} />
+              Register NGO
+            </>
+          )}
+        </button>
+      </div>
     </form>
   );
 };
