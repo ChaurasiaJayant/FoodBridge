@@ -587,7 +587,7 @@ const Dashboard = () => {
             </div>
 
             <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">
-              Welcome to FoodBridge
+              Welcome to HelpingHands Kitchen
             </h1>
 
             <p className="mt-1 text-gray-500">

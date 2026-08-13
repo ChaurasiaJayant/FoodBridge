@@ -96,7 +96,7 @@ const AdminRegister = () => {
             </h1>
 
             <p className="mt-2 text-sm text-slate-500">
-              Create an administrator account for FoodBridge.
+              Create an administrator account for HelpingHands Kitchen.
             </p>
           </div>
 

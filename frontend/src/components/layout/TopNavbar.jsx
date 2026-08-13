@@ -115,7 +115,7 @@ const TopNavbar = ({ onMenuClick }) => {
 
             <div className="text-left">
               <p className="text-xs font-bold text-slate-800">
-                FoodBridge Admin
+                HelpingHands Kitchen Admin
               </p>
               <p className="text-[10px] text-slate-400">Administrator</p>
             </div>

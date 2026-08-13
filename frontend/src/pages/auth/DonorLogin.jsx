@@ -76,7 +76,7 @@ const DonorLogin = () => {
             <h1 className="text-2xl font-bold text-slate-900">Donor Login</h1>
 
             <p className="mt-2 text-sm text-slate-500">
-              Sign in to FoodBridge as a donor.
+              Sign in to HelpingHands Kitchen as a donor.
             </p>
           </div>
 

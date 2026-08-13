@@ -91,7 +91,7 @@ const NGORegister = () => {
             <h1 className="text-2xl font-bold text-slate-900">Register NGO</h1>
 
             <p className="mt-2 text-sm text-slate-500">
-              Join FoodBridge and help deliver surplus food.
+              Join HelpingHands Kitchen and help deliver surplus food.
             </p>
           </div>
 

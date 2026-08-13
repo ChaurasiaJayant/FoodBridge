@@ -5,8 +5,8 @@ import { HelpCircle, X, ChevronDown, ChevronUp } from "lucide-react";
 
 const faqs = [
   {
-    q: "What is FoodBridge?",
-    a: "FoodBridge is a smart food waste and donation platform that connects restaurants, hotels, and individuals who have surplus food with NGOs that can distribute it to those in need.",
+    q: "What is HelpingHands Kitchen?",
+    a: "HelpingHands Kitchen is a smart food waste and donation platform that connects restaurants, hotels, and individuals who have surplus food with NGOs that can distribute it to those in need.",
   },
   {
     q: "How do I donate food?",
@@ -80,7 +80,7 @@ const FAQ = () => {
         {/* Subtitle */}
         <div className="bg-green-50 px-6 py-3 border-b border-green-100">
           <p className="text-sm text-green-700">
-            Everything you need to know about FoodBridge
+            Everything you need to know about HelpingHands Kitchen
           </p>
         </div>
 

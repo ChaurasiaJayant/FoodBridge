@@ -76,7 +76,7 @@ const AdminLogin = () => {
             <h1 className="text-2xl font-bold text-slate-900">Admin Login</h1>
 
             <p className="mt-2 text-sm text-slate-500">
-              Access the FoodBridge administration portal.
+              Access the HelpingHands Kitchen administration portal.
             </p>
           </div>
 

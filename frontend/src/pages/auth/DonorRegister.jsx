@@ -82,7 +82,7 @@ const DonorRegister = () => {
   return (
     <RegisterForm
       title="Create Donor Account"
-      description="Join FoodBridge and start reducing food waste."
+      description="Join HelpingHands Kitchen and start reducing food waste."
       icon={HeartHandshake}
       formData={formData}
       handleChange={handleChange}
